@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div id="sandbox" style="display:none;"></div>
+<canvas id="qr-canvas"></canvas>
+<script>
+setTimeout(() => {
+  const sz = 280;
+  const canvas = document.getElementById('qr-canvas');
+  canvas.width = sz;
+  canvas.height = sz;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, sz, sz);
+
+  const sandbox = document.getElementById('sandbox');
+  const rawQr = new QRCode(sandbox, {
+    text: "https://qrcraft.app",
+    width: sz,
+    height: sz,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.L
+  });
+
+  const count = rawQr._oQRCode.getModuleCount();
+  const moduleSize = sz / count;
+
+  ctx.fillStyle = '#000000';
+
+  for (let row = 0; row < count; row++) {
+    for (let col = 0; col < count; col++) {
+      if (rawQr._oQRCode.isDark(row, col)) {
+        const x = col * moduleSize;
+        const y = row * moduleSize;
+        const isFinder = (col < 7 && row < 7) || (col > count - 8 && row < 7) || (col < 7 && row > count - 8);
+        
+        if (isFinder) {
+          ctx.fillRect(x, y, moduleSize + 0.5, moduleSize + 0.5);
+        } else {
+          // rounded
+          ctx.beginPath();
+          const radius = moduleSize * 0.35;
+          const w = moduleSize;
+          const h = moduleSize;
+          ctx.moveTo(x + radius, y);
+          ctx.lineTo(x + w - radius, y);
+          ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+          ctx.lineTo(x + w, y + h - radius);
+          ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+          ctx.lineTo(x + radius, y + h - radius);
+          ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+          ctx.lineTo(x, y + radius);
+          ctx.quadraticCurveTo(x, y, x + radius, y);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+    }
+  }
+  
+  // also draw the text of the matrix for debugging
+  let out = "";
+  for(let r=0; r<count; r++){
+    for(let c=0; c<count; c++){
+      out += rawQr._oQRCode.isDark(r,c) ? "1" : "0";
+    }
+    out += "\n";
+  }
+  console.log(out);
+  document.body.innerHTML += "<pre>" + out + "</pre>";
+}, 1000);
+</script>
+</body>
+</html>

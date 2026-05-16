@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Free Custom QR Code Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="nav" style="justify-content: center; position: relative;">
+  <a class="nav-logo" href="#">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 3h6v6H3zM3 15h6v6H3zM15 3h6v6h-6zM15 15h6v6h-6zM9 9h6v6H9z"/></svg>
+    </div>
+    Free Custom QR Generator
+  </a>
+</nav>
+
+<!-- GENERATOR PAGE -->
+<div id="page-generator" class="page active">
+  <div class="generator-layout">
+    <!-- LEFT: Settings -->
+    <div class="gen-left">
+      <!-- Content Type -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Content Type</div>
+        <div class="type-grid">
+          <button class="type-btn active" onclick="setType('url',this)"><span>🌐</span>URL</button>
+          <button class="type-btn" onclick="setType('text',this)"><span>📝</span>Text</button>
+          <button class="type-btn" onclick="setType('email',this)"><span>📧</span>Email</button>
+          <button class="type-btn" onclick="setType('phone',this)"><span>📱</span>Phone</button>
+          <button class="type-btn" onclick="setType('sms',this)"><span>💬</span>SMS</button>
+          <button class="type-btn" onclick="setType('wifi',this)"><span>📶</span>WiFi</button>
+          <button class="type-btn" onclick="setType('vcard',this)"><span>👤</span>vCard</button>
+          <button class="type-btn" onclick="setType('location',this)"><span>📍</span>Location</button>
+          <button class="type-btn" onclick="setType('event',this)"><span>📅</span>Event</button>
+        </div>
+      </div>
+
+      <!-- Content Form -->
+      <div class="sidebar-section" id="content-form-section">
+        <div class="sidebar-title">Content</div>
+        <div id="content-form">
+          <div id="form-url" class="content-form">
+            <div class="form-group">
+              <label class="form-label">Website URL</label>
+              <input type="url" class="form-input" id="qr-url-input" placeholder="https://your-website.com" oninput="debounceGenerate()">
+              <div class="form-hint">Include https:// for best results</div>
+            </div>
+          </div>
+          <div id="form-text" class="content-form" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Plain Text</label>
+              <textarea class="form-input" id="qr-text-input" placeholder="Enter any text here..." oninput="debounceGenerate()"></textarea>
+            </div>
+          </div>
+          <div id="form-email" class="content-form" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-input" id="qr-email-input" placeholder="contact@example.com" oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Subject (optional)</label>
+              <input type="text" class="form-input" id="qr-email-subject" placeholder="Subject line..." oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Body (optional)</label>
+              <textarea class="form-input" id="qr-email-body" placeholder="Email body..." oninput="debounceGenerate()" style="min-height:60px"></textarea>
+            </div>
+          </div>
+          <div id="form-phone" class="content-form" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" class="form-input" id="qr-phone-input" placeholder="+1 555 000 0000" oninput="debounceGenerate()">
+            </div>
+          </div>
+          <div id="form-sms" class="content-form" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" class="form-input" id="qr-sms-phone" placeholder="+1 555 000 0000" oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Message</label>
+              <textarea class="form-input" id="qr-sms-msg" placeholder="Type your SMS..." oninput="debounceGenerate()" style="min-height:60px"></textarea>
+            </div>
+          </div>
+          <div id="form-wifi" class="content-form" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Network Name (SSID)</label>
+              <input type="text" class="form-input" id="qr-wifi-ssid" placeholder="MyWiFiNetwork" oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-input" id="qr-wifi-pass" placeholder="WiFi password" oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Security Type</label>
+              <select class="form-input" id="qr-wifi-type" onchange="debounceGenerate()">
+                <option>WPA/WPA2</option><option>WEP</option><option>None</option>
+              </select>
+            </div>
+          </div>
+          <div id="form-vcard" class="content-form" style="display:none">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input type="text" class="form-input" id="qr-vcard-fn" placeholder="John" oninput="debounceGenerate()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" class="form-input" id="qr-vcard-ln" placeholder="Doe" oninput="debounceGenerate()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Company</label>
+              <input type="text" class="form-input" id="qr-vcard-org" placeholder="Company Inc." oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone</label>
+              <input type="tel" class="form-input" id="qr-vcard-phone" placeholder="+1 555 000 0000" oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="qr-vcard-email" placeholder="john@company.com" oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Website</label>
+              <input type="url" class="form-input" id="qr-vcard-url" placeholder="https://yoursite.com" oninput="debounceGenerate()">
+            </div>
+          </div>
+          <div id="form-location" class="content-form" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Latitude</label>
+              <input type="number" class="form-input" id="qr-lat" placeholder="40.7128" step="0.0001" oninput="debounceGenerate()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Longitude</label>
+              <input type="number" class="form-input" id="qr-lng" placeholder="-74.0060" step="0.0001" oninput="debounceGenerate()">
+            </div>
+          </div>
+          <div id="form-event" class="content-form" style="display:none">
+            <div class="form-group">
+              <label class="form-label">Event Name</label>
+              <input type="text" class="form-input" id="qr-event-name" placeholder="My Event" oninput="debounceGenerate()">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Start Date</label>
+                <input type="datetime-local" class="form-input" id="qr-event-start" oninput="debounceGenerate()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">End Date</label>
+                <input type="datetime-local" class="form-input" id="qr-event-end" oninput="debounceGenerate()">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location</label>
+              <input type="text" class="form-input" id="qr-event-loc" placeholder="Event venue..." oninput="debounceGenerate()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Correction -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Error Correction</div>
+        <div class="tabs-row">
+          <button class="tab-item active" onclick="setEC('L',this)">Low (7%)</button>
+          <button class="tab-item" onclick="setEC('M',this)">Med (15%)</button>
+          <button class="tab-item" onclick="setEC('Q',this)">High (25%)</button>
+          <button class="tab-item" onclick="setEC('H',this)">Max (30%)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: Preview Area -->
+    <div class="gen-center">
+      <div class="qr-preview-wrap">
+        <div class="qr-frame" id="qr-frame">
+          <div id="qr-canvas-container">
+            <div class="qr-placeholder" id="qr-placeholder">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              <span>Enter content to generate QR</span>
+            </div>
+            <canvas id="qr-canvas" style="display:none; image-rendering:pixelated; border-radius:0px;"></canvas>
+            <div class="qr-logo-overlay" id="logo-overlay" style="display:none">
+              <img id="logo-img" src="" alt="logo">
+            </div>
+          </div>
+          <div class="preview-label-container" id="qr-preview-label">QR Code Preview</div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+        <button class="btn-outline" style="padding:10px 18px;font-size:14px" onclick="copyToClipboard()">📋 Copy</button>
+        <button class="btn-outline" style="padding:10px 18px;font-size:14px" onclick="showPage('scan')">📷 Scan</button>
+        
+        <div style="position:relative" id="download-dropdown-wrap">
+          <button class="btn-primary" style="padding:10px 18px;font-size:14px" onclick="document.getElementById('dl-menu').style.display=document.getElementById('dl-menu').style.display==='flex'?'none':'flex'">⬇ Download</button>
+          <div id="dl-menu" style="display:none;position:absolute;top:100%;right:0;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px;margin-top:8px;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:100;min-width:160px;flex-direction:column;gap:4px">
+            <button class="dl-btn-outline" onclick="downloadFile('png')">PNG Image</button>
+            <button class="dl-btn-outline" onclick="downloadFile('jpg')">JPG Image</button>
+            <button class="dl-btn-outline" onclick="downloadFile('webp')">WEBP Image</button>
+            <button class="dl-btn-outline" onclick="downloadFile('svg')">SVG Vector</button>
+            <button class="dl-btn-outline" onclick="downloadFile('pdf')">PDF Document</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frame Label Input -->
+      <div style="width:100%;max-width:400px;margin-top:8px">
+        <input type="text" class="form-input" id="frame-label-text" placeholder='Frame label text (e.g. "Scan Me")' oninput="updateFrameLabel()" style="text-align:center">
+      </div>
+    </div>
+
+    <!-- RIGHT: Customization -->
+    <div class="gen-right" id="customization-panel">
+      <!-- Colors & Background Shape -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Colors & Background</div>
+        <div class="form-group">
+          <label class="form-label">Foreground Color</label>
+          <div class="color-row">
+            <div class="color-swatch" id="fg-swatch" style="background:#1a1a2e">
+              <div class="color-swatch-inner"><input type="color" id="fg-color" value="#1a1a2e" oninput="updateFgColor(this.value)"></div>
+            </div>
+            <div class="preset-colors">
+              <div class="preset-color active" style="background:#1a1a2e" onclick="updateFgColor('#1a1a2e')"></div>
+              <div class="preset-color" style="background:#7c3aed" onclick="updateFgColor('#7c3aed')"></div>
+              <div class="preset-color" style="background:#ec4899" onclick="updateFgColor('#ec4899')"></div>
+              <div class="preset-color" style="background:#059669" onclick="updateFgColor('#059669')"></div>
+              <div class="preset-color" style="background:#ea580c" onclick="updateFgColor('#ea580c')"></div>
+            </div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px">
+          <label class="form-label">Background Color</label>
+          <div class="color-row">
+            <div class="color-swatch" id="bg-swatch" style="background:#ffffff">
+              <div class="color-swatch-inner"><input type="color" id="bg-color" value="#ffffff" oninput="updateBgColor(this.value)"></div>
+            </div>
+            <div class="toggle-wrap">
+              <button class="toggle-opt active" id="bg-solid-btn" onclick="toggleTransparent(false)">Solid</button>
+              <button class="toggle-opt" id="bg-trans-btn" onclick="toggleTransparent(true)">Trans</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:16px">
+          <label class="form-label">Background Shape</label>
+          <div class="style-grid" id="bg-shape-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <button class="style-btn active" onclick="setBgShape('square',this)">Square</button>
+            <button class="style-btn" onclick="setBgShape('rounded',this)">Rounded</button>
+            <button class="style-btn" onclick="setBgShape('extra',this)">Full-Round</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Advanced Shapes Section (Body, Eye Frame, Eye Ball) -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Advanced Shapes</div>
+        
+        <label class="form-label">Body Shape (19 Options)</label>
+        <div class="style-grid" id="body-shape-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 16px; max-height: 200px; overflow-y: auto; padding-right: 4px;">
+          <button class="style-btn active" onclick="setDotStyle('square',this)">Square</button>
+          <button class="style-btn" onclick="setDotStyle('rounded',this)">Rounded</button>
+          <button class="style-btn" onclick="setDotStyle('extra-rounded',this)">Ex-Round</button>
+          <button class="style-btn" onclick="setDotStyle('classy',this)">Classy</button>
+          <button class="style-btn" onclick="setDotStyle('dots',this)">Dots</button>
+          <button class="style-btn" onclick="setDotStyle('diamond',this)">Diamond</button>
+          <button class="style-btn" onclick="setDotStyle('star',this)">Star</button>
+          <button class="style-btn" onclick="setDotStyle('cross',this)">Cross</button>
+          
+          <!-- New Shapes -->
+          <button class="style-btn" onclick="setDotStyle('heart',this)">Heart</button>
+          <button class="style-btn" onclick="setDotStyle('hexagon',this)">Hexagon</button>
+          <button class="style-btn" onclick="setDotStyle('octagon',this)">Octagon</button>
+          <button class="style-btn" onclick="setDotStyle('triangle',this)">Triangle</button>
+          <button class="style-btn" onclick="setDotStyle('triangle-down',this)">Tri-Down</button>
+          <button class="style-btn" onclick="setDotStyle('flower',this)">Flower</button>
+          <button class="style-btn" onclick="setDotStyle('spikes',this)">Spikes</button>
+          <button class="style-btn" onclick="setDotStyle('plus',this)">Plus</button>
+          <button class="style-btn" onclick="setDotStyle('x-shape',this)">X-Shape</button>
+          <button class="style-btn" onclick="setDotStyle('dash',this)">Dash</button>
+          <button class="style-btn" onclick="setDotStyle('dash-v',this)">Dash-V</button>
+        </div>
+
+        <label class="form-label">Eye Frame Shape (8 Options)</label>
+        <div class="style-grid" id="eye-frame-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 16px;">
+          <button class="style-btn active" onclick="setEyeFrameShape('square',this)">Square</button>
+          <button class="style-btn" onclick="setEyeFrameShape('rounded',this)">Rounded</button>
+          <button class="style-btn" onclick="setEyeFrameShape('circle',this)">Circle</button>
+          <button class="style-btn" onclick="setEyeFrameShape('leaf',this)">Leaf</button>
+          <!-- New -->
+          <button class="style-btn" onclick="setEyeFrameShape('shield',this)">Shield</button>
+          <button class="style-btn" onclick="setEyeFrameShape('hexagon',this)">Hexagon</button>
+          <button class="style-btn" onclick="setEyeFrameShape('octagon',this)">Octagon</button>
+          <button class="style-btn" onclick="setEyeFrameShape('star',this)">Star</button>
+        </div>
+
+        <label class="form-label">Eye Ball Shape (8 Options)</label>
+        <div class="style-grid" id="eye-ball-grid" style="grid-template-columns: repeat(4, 1fr);">
+          <button class="style-btn active" onclick="setEyeBallShape('square',this)">Square</button>
+          <button class="style-btn" onclick="setEyeBallShape('rounded',this)">Rounded</button>
+          <button class="style-btn" onclick="setEyeBallShape('circle',this)">Circle</button>
+          <button class="style-btn" onclick="setEyeBallShape('diamond',this)">Diamond</button>
+          <!-- New -->
+          <button class="style-btn" onclick="setEyeBallShape('leaf',this)">Leaf</button>
+          <button class="style-btn" onclick="setEyeBallShape('hexagon',this)">Hexagon</button>
+          <button class="style-btn" onclick="setEyeBallShape('star',this)">Star</button>
+          <button class="style-btn" onclick="setEyeBallShape('plus',this)">Plus</button>
+        </div>
+      </div>
+
+      <!-- Logo & Image -->
+      <div class="sidebar-section">
+        <div class="sidebar-title">Center Logo</div>
+        <div class="logo-upload-zone" id="logo-drop" onclick="document.getElementById('logo-input').click()">
+          <input type="file" id="logo-input" accept="image/png, image/jpeg, image/svg+xml" onchange="handleLogoUpload(event)">
+          <div class="logo-preview" id="logo-preview-box" style="display:none">
+            <img id="logo-preview-img" src="">
+          </div>
+          <div id="logo-upload-text">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom:8px;color:var(--accent2)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Click to upload logo</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:4px">PNG, JPG or SVG</div>
+          </div>
+        </div>
+        <div id="logo-controls" style="display:none;margin-top:16px">
+          <div class="form-group">
+            <div style="display:flex;justify-content:space-between">
+              <label class="form-label">Logo Size</label>
+              <div class="slider-val" id="logo-size-val">20%</div>
+            </div>
+            <div class="slider-wrap">
+              <input type="range" class="slider" id="logo-size" min="10" max="30" value="20" oninput="updateLogoSize(this.value)">
+            </div>
+          </div>
+          <button class="dl-btn-outline" style="margin-top:10px" onclick="removeLogo()">Remove Logo</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-icon success" id="toast-icon">✓</div>
+  <div id="toast-msg">Action completed</div>
+</div>
+
+<script src="qr-renderer.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
